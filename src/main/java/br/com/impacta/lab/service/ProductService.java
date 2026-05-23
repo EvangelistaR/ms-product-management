@@ -1,8 +1,11 @@
 package br.com.impacta.lab.service;
 
+import br.com.impacta.lab.dto.ProductPatchRequest;
+import br.com.impacta.lab.dto.ProductUpdateRequest;
 import br.com.impacta.lab.entity.ProductEntity;
 import br.com.impacta.lab.dto.ProductRequest;
 import br.com.impacta.lab.dto.ProductResponse;
+import br.com.impacta.lab.exception.NotFoundException;
 import br.com.impacta.lab.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,7 +33,11 @@ public class ProductService {
         ProductEntity product = productRepository.getById(id);
 
 
-        return product == null ? null : toResponse(product);
+        if  (product == null) {
+            throw new NotFoundException(id);
+        } else {
+            return toResponse(product);
+        }
     }
 
     public ProductResponse createProduct(ProductRequest request) {
@@ -49,6 +56,45 @@ public class ProductService {
 
         return productEntity;
     }
+
+    public ProductResponse updateProduct(Long id, ProductUpdateRequest request) {
+        ProductEntity product = productRepository.getById(id);
+
+        if (product == null) {
+            throw new NotFoundException(id);
+        }
+
+        product.setName(request.name());
+        product.setPrice(request.price());
+        product.setDescription(request.description());
+
+        return toResponse(productRepository.updateProduct(product));
+    }
+
+    public ProductResponse patchProduct(Long id, ProductPatchRequest request) {
+        ProductEntity product = productRepository.getById(id);
+        if (product == null) {
+            throw new NotFoundException(id);
+        }
+
+        request.name().ifPresent(product::setName);
+        request.price().ifPresent( price -> product.setPrice(price));
+        request.description().ifPresent(product::setDescription);
+
+        return toResponse(productRepository.updateProduct(product));
+
+    }
+
+    public void deleteProduct(Long id) {
+        ProductEntity product = productRepository.getById(id);
+
+        if (product == null) {
+            throw new NotFoundException(id);
+        }
+
+        productRepository.delete(product);
+    }
+
 
     public ProductResponse toResponse (ProductEntity productEntity) {
         return new ProductResponse(productEntity.getId(), productEntity.getName(), productEntity.getPrice(), productEntity.getDescription());

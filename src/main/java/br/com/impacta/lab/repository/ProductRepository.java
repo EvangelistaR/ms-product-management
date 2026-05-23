@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class ProductRepository {
@@ -32,5 +33,19 @@ public class ProductRepository {
         sequential++;
 
         return productEntity;
+    }
+
+    public ProductEntity updateProduct(ProductEntity productEntity) {
+        for ( int i = 0; i < products.size(); i++) {
+            if (Objects.equals(productEntity.getId(), products.get(i).getId())) {
+                products.set(i, productEntity);
+            }
+        }
+
+        return productEntity;
+    }
+
+    public void delete(ProductEntity productEntity) {
+        products.remove(productEntity);
     }
 }
